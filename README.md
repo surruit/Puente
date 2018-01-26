@@ -1,7 +1,9 @@
 # Puente
 
 ## ¿Qué es Puente? ##
-Framework de desarrollo de videjuegos
+Puente es un Framework de desarrollo de videojuegos escrito en JavaScript que se apoya en [Threejs](https://github.com/mrdoob/three.js).
+
+Puente busca simplificar el código y hacerlo más legible a la par que eficiente.
 
 El código de Puente es modular. Algunos módulos dependen de otros módulos (incluso otras librerías externas como Threejs). Cuando otro módulo se requiere, se especifica en su README.
 
