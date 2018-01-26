@@ -1,4 +1,4 @@
-Puente by Surruit
+Puente by Surruit.
 
 To the extent possible under law, the person who associated CC0 with
 Puente has waived all copyright and related or neighboring rights
