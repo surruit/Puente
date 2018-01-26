@@ -1,4 +1,4 @@
-##Descripción
+## Descripción
 Exportador en formato JSON de las luces de Blender.
 
 Actualmente solo soporta el renderizador Blender render y los tipos de luces:
