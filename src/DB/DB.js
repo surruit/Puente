@@ -1,6 +1,6 @@
 Puente.DB = {
-	Luces: {}
-	Objetos3D: {}
+	Luces: {},
+	Objetos3D: {},
 	PTag: {}
 	
 };
@@ -28,39 +28,9 @@ Puente.DB.Objetos3D = (function (){
 					   
 Puente.DB.Luces = (function (){
 	
-	//Listas de objetos
-	var lista = {}; //un objeto de objetos lista
-	lista.todas = {}; //un objeto con todas las luces
-	
-	lista.spot = {}; //un objeto con todas las luces de tipo spot
-	lista.point = {}; //un objeto con todas las luces de tipo point
-	lista.ambiental = {}; //un objeto con todas las luces de tipo ambiental
-	
-	lista.useShadow = {}; //un objeto con todas las luces que usan, usaran o han usado sombras (que contiene exactamente lo decide el que lo usa)
-	
-	//shadowconfig
-	var shadowConfig = {}
-	shadowConfig.setRender = funcionesShadow.setRender;
-	shadowConfig.enableShadows = funcionesShadow.enableShadows;
-	shadowConfig.enableShadowAsStatic = funcionesShadow.enableShadowAsStatic;
-	
-
-	//Definicion de Luces
-	var Luces = {};
-	Luces.luces = lista;
-	Luces.autoAdd = funcionesLuces.autoAdd;
-	Luces.shadowConfig = shadowConfig;
-	
-	//definicion de listas especificas
-	lista.todas = new baseLuzLista();
-	lista.spot = new baseLuzLista("SPOT");
-	lista.point = new baseLuzLista("POINT");
-	lista.ambiental = new baseLuzLista("AMBIENTAL");
-	lista.useShadow = new baseLuzLista("SHADOW");
-	
 	
 	//Listas para los distintos tipos de luz, creadas con un constructor comun
-	baseLuzLista = function (tipo){ //recibe el tipo de lista, no de objeto
+	var baseLuzLista = function (tipo){ //recibe el tipo de lista, no de objeto
 		this.luces = {};
 		
 		this.add = funcionesListas.add;
@@ -83,9 +53,9 @@ Puente.DB.Luces = (function (){
 	};
 	
 	//objeto con todas las funciones usadas por las luces
-	funcionesListas = {
+	var funcionesListas = {
 		add: function(objeto){
-			this.luces[this.luces.length] = objeto;
+			this.luces[Object.keys(this.luces).length] = objeto;
 		},
 		enableShadow: function (enable){
 			for (luz of this.luces){
@@ -101,7 +71,7 @@ Puente.DB.Luces = (function (){
 	};
 	
 	//funciones de Luces (objeto final)
-	funcionesLuces = {
+	var funcionesLuces = {
 		autoAdd: function (luz){
 			this.luces.todas.add(luz);
 			if (luz.isAmbientLight){
@@ -117,7 +87,7 @@ Puente.DB.Luces = (function (){
 	};
 	
 	//funciones Shadow
-	funcionesShadow = {
+	var funcionesShadow = {
 		setRender: function (ren){
 			render = ren;
 		},
@@ -136,6 +106,28 @@ Puente.DB.Luces = (function (){
 			render.shadowMap.type = THREE.BasicShadowMap;
 		}
 	};
+	
+	//Listas de objetos
+	var lista = {}; //un objeto de objetos lista
+	lista.todas = new baseLuzLista();
+	lista.spot = new baseLuzLista("SPOT");
+	lista.point = new baseLuzLista("POINT");
+	lista.ambiental = new baseLuzLista("AMBIENTAL");
+	lista.useShadow = new baseLuzLista("SHADOW");
+	
+	
+	//shadowconfig
+	var shadowConfig = {}
+	shadowConfig.setRender = funcionesShadow.setRender;
+	shadowConfig.enableShadows = funcionesShadow.enableShadows;
+	shadowConfig.enableShadowAsStatic = funcionesShadow.enableShadowAsStatic;
+	
+
+	//Definicion de Luces
+	var Luces = {};
+	Luces.luces = lista;
+	Luces.autoAdd = funcionesLuces.autoAdd;
+	Luces.shadowConfig = shadowConfig;
 	
 	return Luces;
 })();
