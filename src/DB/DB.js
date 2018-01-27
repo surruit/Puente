@@ -2,30 +2,85 @@ Puente.DB = {
 	Luces: {},
 	Objetos3D: {},
 	PTag: {}
-	
 };
 
-//PTag contiene constantes Tag, se agrega en cada objeto, en un array PTag.
-//Mediante los PTag se pueden hacer tareas de grupo, como activar las sombras en todos los Objetos3D con el PTag Sombras
-
-//Los grupos se pueden implementar creando un objeto para cada uno (los objetos se referencian, no se copian, el consumo de memoria es minimo) y estos grupos puede crearlos o destruirlos el usuario.
 
 Puente.DB.Objetos3D = (function (){
-	var listaObjetos = []; //un array con todos los objetos
 	
-	Objetos3D = function(){};
-	
-	Objetos3D.prototype = {
-		constructor: Objetos3D,
+	//Clase constructor para las listas de objetos
+	var baseObjetoLista = function (tipo){ //recibe el tipo de lista, no de objeto
+		this.objetos = {};
 		
+		this.add = funcionesListas.add;
+		this.enableShadowCast = funcionesListas.enableShadowCast;
+		this.enableShadowReceive = funcionesListas.enableShadowReceive;
+		this.addToScene = funcionesListas.addToScene;
+	};
+	
+	//objeto con todas las funciones usadas por las luces
+	var funcionesListas = {
 		add: function(objeto){
-			listaObjetos[listaObjetos.length] = objeto;
+			this.objetos[Object.keys(this.objetos).length] = objeto;
+		},
+		enableShadowCast: function (enable){
+			for (ob of this.objetos){
+				if (enable){
+					ob.castShadow = true;
+				}else{
+					ob.castShadow = false;
+				}
+			}
+		},
+		enableShadowReceive: function (enable){
+			for (ob of this.objetos){
+				if (enable){
+					ob.receiveShadow = true;
+				}else{
+					ob.receiveShadow = false;
+				}
+			}
+		},
+		getAll: function (){
+			return this.objetos;
+		},
+		addToScene: function (scene){
+			for (ob of this.objetos){
+				scene.add(ob);
+			}
+		}
+
+	};
+	
+	//funciones de Objetos3D (objeto final)
+	var funcionesObjetos3D = {
+		autoAdd: function (ob){
+			this.listaObjetos3D.todos.add(ob);
+			//implementar sistema de parametros EXTRA de blender para agrupar segun ellos, adicionalmente podria haber una funcion autoAdd que ademas cree las listas a partir de esos extras automaticamente.
+		},
+		autoAddFromScene: function(scene){
+			if(scene.type == "Scene"){
+				for (ob of scene.children){
+					this.autoAdd(ob);
+				}
+			}else{
+				console.error("Puente.DB.Objetos3D:", scene, "is not a scene");
+			}
 		}
 	};
 	
-	return new Objetos3D; //devuelve una instancia.
+	//Listas de objetos
+	var lista = {}; //un objeto de objetos lista
+	lista.todos = new baseObjetoLista();
+	
+	var Objetos3D = {};
+	Objetos3D.listaObjetos3D = lista;
+	Objetos3D.autoAdd = funcionesObjetos3D.autoAdd;
+	Objetos3D.autoAddFromScene = funcionesObjetos3D.autoAddFromScene;
+	
+	return Objetos3D; //devuelve una instancia.
 })();
-					   
+
+
 Puente.DB.Luces = (function (){
 	
 	
@@ -61,6 +116,8 @@ Puente.DB.Luces = (function (){
 			for (luz of this.luces){
 				if (enable){
 					luz.castShadow = true;
+				}else{
+					luz.castShadow = false;
 				}
 			}
 		},
@@ -73,15 +130,15 @@ Puente.DB.Luces = (function (){
 	//funciones de Luces (objeto final)
 	var funcionesLuces = {
 		autoAdd: function (luz){
-			this.luces.todas.add(luz);
+			this.ListaLuces.todas.add(luz);
 			if (luz.isAmbientLight){
-				this.luces.ambiental.add(luz);
+				this.ListaLuces.ambiental.add(luz);
 			}
 			if (luz.isPointLight){
-				this.luces.point.add(luz);
+				this.ListaLuces.point.add(luz);
 			}
 			if (luz.isSpotLight){
-				this.luces.spot.add(luz);
+				this.ListaLuces.spot.add(luz);
 			}
 		}
 	};
@@ -125,7 +182,7 @@ Puente.DB.Luces = (function (){
 
 	//Definicion de Luces
 	var Luces = {};
-	Luces.luces = lista;
+	Luces.listaLuces = lista;
 	Luces.autoAdd = funcionesLuces.autoAdd;
 	Luces.shadowConfig = shadowConfig;
 	
