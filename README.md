@@ -11,3 +11,8 @@ Cada módulo está en una carpeta independiente, los posibles distintos archivos
 
 ## Licencia ##
 ![Logo CC0](/Imagenes/CC0.png)
+
+
+### Trabajando en:
+* Exportador de camaras
+* Importador de camaras
