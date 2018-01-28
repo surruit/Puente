@@ -9,5 +9,10 @@ El código de Puente es modular. Algunos módulos dependen de otros módulos (in
 
 Cada módulo está en una carpeta independiente, los posibles distintos archivos de esta carpeta son (normalmente) requeridos por el módulo.
 
+### Trabajando en:
+* Exportador de camaras
+* Importador de camaras
+
+
 ## Licencia ##
 ![Logo CC0](/Imagenes/CC0.png)
