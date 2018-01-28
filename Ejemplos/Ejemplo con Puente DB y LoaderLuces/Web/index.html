@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html>
+<script src="three.min.js"></script>
+<script src="FirstPersonControls.js"></script>
+<script src="GLTFLoader.js"></script>
+<script src="Puente.js"></script>
+<script src="LoaderLuces.js"></script>
+<script src="DB.js"></script>
+
+
+
+
+	<head>
+		<title>three.js webgl - scene animation</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+			a {
+				color: #0af;
+			}
+		</style>
+</head>
+
+
+<body>
+<script>
+var scene = new THREE.Scene();
+var camera;
+var renderer = new THREE.WebGLRenderer();
+var controls;
+var ejecutando = false
+var clock = new THREE.Clock();
+
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+//crear camara libre
+camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.x = 0;
+        camera.position.y = 5;
+        camera.position.z = 0;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+        var camControls = new THREE.FirstPersonControls(camera);
+        camControls.lookSpeed = 0.2;
+        camControls.movementSpeed = 50;
+        camControls.noFly = false;
+        camControls.lookVertical = true;
+        camControls.constrainVertical = true;
+        camControls.verticalMin = 1.0;
+        camControls.verticalMax = 2.0;
+        camControls.lon = -150;
+        camControls.lat = 120;
+		
+
+// Instantiate a loader
+var loader = new THREE.GLTFLoader();
+
+// Load a glTF resource
+loader.load(
+	'Ejemplo 1.gltf',
+	function ( gltf ) {
+		console.log(gltf);
+		Puente.DB.Objetos3D.autoAddFromScene(gltf.scene);
+		Puente.DB.Objetos3D.listaObjetos3D.todos.addToScene(scene);
+		
+		Puente.DB.Luces.shadowConfig.enableShadows();
+		
+		animate();
+	},
+	function ( xhr ) {
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+	},
+	function ( error ) {
+		console.log( 'An error happened' );
+	}
+);
+
+var lucesLoader = new Puente.LoaderLuces();
+
+lucesLoader.load(
+	'Ejemplo 1.luces.json',
+	function (luces){
+		Puente.DB.Luces.autoAddFromArray(luces);
+		Puente.DB.Luces.listaLuces.todas.addToScene(scene);
+		
+		Puente.DB.Luces.shadowConfig.enableShadows();
+		//Puente.DB.Luces.shadowConfig.
+	},
+	function ( xhr ) {
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+	},
+	function ( error ) {
+		console.log( 'An error happened' );
+	}
+);
+
+//necesario para usar shandowConfig
+Puente.DB.Luces.shadowConfig.setRender(renderer);
+
+function animate() {
+	requestAnimationFrame(animate);
+	camControls.update(clock.getDelta());
+	renderer.render(scene, camera);
+
+}
+
+
+</script>
+
+</body>
+
+
+
+
+
+
+
+
+
+<html>
