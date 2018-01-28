@@ -23,7 +23,7 @@ Puente.DB.Objetos3D = (function (){
 			this.objetos[Object.keys(this.objetos).length] = objeto;
 		},
 		enableShadowCast: function (enable){
-			for (ob of this.objetos){
+			for (ob of Object.values(this.objetos)){
 				if (enable){
 					ob.castShadow = true;
 				}else{
@@ -32,7 +32,7 @@ Puente.DB.Objetos3D = (function (){
 			}
 		},
 		enableShadowReceive: function (enable){
-			for (ob of this.objetos){
+			for (ob of Object.values(this.objetos)){
 				if (enable){
 					ob.receiveShadow = true;
 				}else{
@@ -44,7 +44,7 @@ Puente.DB.Objetos3D = (function (){
 			return this.objetos;
 		},
 		addToScene: function (scene){
-			for (ob of this.objetos){
+			for (ob of Object.values(this.objetos)){
 				scene.add(ob);
 			}
 		}
@@ -89,6 +89,7 @@ Puente.DB.Luces = (function (){
 		this.luces = {};
 		
 		this.add = funcionesListas.add;
+		this.addToScene = funcionesListas.addToScene;
 		
 		if (tipo == "SPOT"){
 			this.enableShadow = funcionesListas.enableShadow;
@@ -113,7 +114,8 @@ Puente.DB.Luces = (function (){
 			this.luces[Object.keys(this.luces).length] = objeto;
 		},
 		enableShadow: function (enable){
-			for (luz of this.luces){
+			console.log(this.luces);
+			for (luz of  Object.values(this.luces)){
 				if (enable){
 					luz.castShadow = true;
 				}else{
@@ -123,22 +125,35 @@ Puente.DB.Luces = (function (){
 		},
 		getAll: function (){
 			return this.luces;
+		},
+		addToScene: function (scene){
+			for (luz of Object.values(this.luces)){
+				scene.add(luz);
+			}
 		}
-
 	};
 	
 	//funciones de Luces (objeto final)
 	var funcionesLuces = {
 		autoAdd: function (luz){
-			this.ListaLuces.todas.add(luz);
+			this.listaLuces.todas.add(luz);
 			if (luz.isAmbientLight){
-				this.ListaLuces.ambiental.add(luz);
+				this.listaLuces.ambiental.add(luz);
 			}
 			if (luz.isPointLight){
-				this.ListaLuces.point.add(luz);
+				this.listaLuces.point.add(luz);
 			}
 			if (luz.isSpotLight){
-				this.ListaLuces.spot.add(luz);
+				this.listaLuces.spot.add(luz);
+			}
+			
+			if (luz.isPointLight || luz.isSpotLight){
+				this.listaLuces.useShadow.add(luz);
+			}
+		},
+		autoAddFromArray: function (lista){
+			for (luz of lista){
+				this.autoAdd(luz);
 			}
 		}
 	};
@@ -150,9 +165,9 @@ Puente.DB.Luces = (function (){
 		},
 		enableShadows: function (){
 			render.shadowMap.enabled = true;
-			Luces.luces.useShadow.enableShadow(true);
-			//llamada a la funcion que tiene los objetos que castean sombras
-			//llamada a la funcion que tiene los objetos que reciben sombras
+			Luces.listaLuces.useShadow.enableShadow(true);
+			Puente.DB.Objetos3D.listaObjetos3D.todos.enableShadowCast(true);
+			Puente.DB.Objetos3D.listaObjetos3D.todos.enableShadowReceive(true);
 			},
 		enableShadowAsStatic: function (){
 			funcionesShadow.enableShadows();
@@ -178,12 +193,14 @@ Puente.DB.Luces = (function (){
 	shadowConfig.setRender = funcionesShadow.setRender;
 	shadowConfig.enableShadows = funcionesShadow.enableShadows;
 	shadowConfig.enableShadowAsStatic = funcionesShadow.enableShadowAsStatic;
+	shadowConfig.setShadowQualityLow = funcionesShadow.setShadowQualityLow;
 	
 
 	//Definicion de Luces
 	var Luces = {};
 	Luces.listaLuces = lista;
 	Luces.autoAdd = funcionesLuces.autoAdd;
+	Luces.autoAddFromArray = funcionesLuces.autoAddFromArray;
 	Luces.shadowConfig = shadowConfig;
 	
 	return Luces;
