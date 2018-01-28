@@ -9,7 +9,7 @@ Puente.DB.Objetos3D = (function (){
 	
 	//Clase constructor para las listas de objetos
 	var baseObjetoLista = function (tipo){ //recibe el tipo de lista, no de objeto
-		this.objetos = {};
+		this.objetos = [];
 		
 		this.add = funcionesListas.add;
 		this.enableShadowCast = funcionesListas.enableShadowCast;
@@ -20,10 +20,10 @@ Puente.DB.Objetos3D = (function (){
 	//objeto con todas las funciones usadas por las luces
 	var funcionesListas = {
 		add: function(objeto){
-			this.objetos[Object.keys(this.objetos).length] = objeto;
+			this.objetos[this.objetos.length] = objeto;
 		},
 		enableShadowCast: function (enable){
-			for (ob of Object.values(this.objetos)){
+			for (ob of this.objetos){
 				if (enable){
 					ob.castShadow = true;
 				}else{
@@ -32,7 +32,7 @@ Puente.DB.Objetos3D = (function (){
 			}
 		},
 		enableShadowReceive: function (enable){
-			for (ob of Object.values(this.objetos)){
+			for (ob of this.objetos){
 				if (enable){
 					ob.receiveShadow = true;
 				}else{
@@ -44,7 +44,7 @@ Puente.DB.Objetos3D = (function (){
 			return this.objetos;
 		},
 		addToScene: function (scene){
-			for (ob of Object.values(this.objetos)){
+			for (ob of this.objetos){
 				scene.add(ob);
 			}
 		}
@@ -86,7 +86,7 @@ Puente.DB.Luces = (function (){
 	
 	//Listas para los distintos tipos de luz, creadas con un constructor comun
 	var baseLuzLista = function (tipo){ //recibe el tipo de lista, no de objeto
-		this.luces = {};
+		this.luces = [];
 		
 		this.add = funcionesListas.add;
 		this.addToScene = funcionesListas.addToScene;
@@ -111,11 +111,11 @@ Puente.DB.Luces = (function (){
 	//objeto con todas las funciones usadas por las luces
 	var funcionesListas = {
 		add: function(objeto){
-			this.luces[Object.keys(this.luces).length] = objeto;
+			this.luces[this.luces.length] = objeto;
 		},
 		enableShadow: function (enable){
 			console.log(this.luces);
-			for (luz of  Object.values(this.luces)){
+			for (luz of this.luces){
 				if (enable){
 					luz.castShadow = true;
 				}else{
@@ -127,7 +127,7 @@ Puente.DB.Luces = (function (){
 			return this.luces;
 		},
 		addToScene: function (scene){
-			for (luz of Object.values(this.luces)){
+			for (luz of this.luces){
 				scene.add(luz);
 			}
 		}
