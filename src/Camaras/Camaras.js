@@ -10,10 +10,10 @@ Puente.Camaras = (function(){
 			}
 		},
 		startListeners: function(){
-			document.addEventListener("pointerlockchange", this.pointerLockChange.bind(this));
-			document.addEventListener("mousemove", this.procesarRaton.bind(this));
-			document.addEventListener("keydown", this.keyDownEvent.bind(this));
-			document.addEventListener("keyup", this.keyUpEvent.bind(this));
+			document.addEventListener("pointerlockchange", funcionesEventos.pointerLockChange.bind(this)); //####estaba editando esto
+			document.addEventListener("mousemove", funcionesEventos.procesarRaton.bind(this));
+			document.addEventListener("keydown", funcionesEventos.keyDownEvent.bind(this));
+			document.addEventListener("keyup", funcionesEventos.keyUpEvent.bind(this));
 		}
 	};
 	
@@ -51,9 +51,9 @@ Puente.Camaras = (function(){
 				case "retroceder":
 					this.moviendoA.atras = true; break;
 				case "derecha":
-					this.moviendoA.izquierda = true; break;
-				case "izquierda":
 					this.moviendoA.derecha = true; break;
+				case "izquierda":
+					this.moviendoA.izquierda = true; break;
 			}
 		},
 		keyUpEvent: function (e) {
@@ -64,26 +64,27 @@ Puente.Camaras = (function(){
 				case "retroceder":
 					this.moviendoA.atras = false; break;
 				case "derecha":
-					this.moviendoA.izquierda = false; break;
-				case "izquierda":
 					this.moviendoA.derecha = false; break;
+				case "izquierda":
+					this.moviendoA.izquierda = false; break;
 			}
 		}
 	};
 	
 	var funcionesMov = {
 		updateMov: function (delta) {
-			if (this.movimientosKey.avanzar){
+			if (this.moviendoA.avanzar){
 				this.moverAdelante(-delta*this.velMov);
 			}
-			if (this.movimientosKey.atras){
+			if (this.moviendoA.atras){
 				this.moverAdelante(delta*this.velMov);
 			}
-			if (this.movimientosKey.izquierda){
-				this.objetoMovil.translateX( -delta*this.velMov);
+			if (this.moviendoA.izquierda){
+				console.log("parent:", this.parent);
+				this.parent.translateX( -delta*this.velMov);
 			}
-			if (this.movimientosKey.derecha){
-				this.objetoMovil.translateX(delta*this.velMov);
+			if (this.moviendoA.derecha){
+				this.parent.translateX(delta*this.velMov);
 			}
 		},
 		moverAdelante: function (movimiento) {
@@ -94,7 +95,7 @@ Puente.Camaras = (function(){
 			e.x = 0;
 			q.setFromEuler(e);
 			v.applyQuaternion(q);
-			this.objetoMovil.position.add(v.multiplyScalar(movimiento));	
+			this.parent.position.add(v.multiplyScalar(movimiento));	
 		}
 	};
 	
@@ -103,7 +104,7 @@ Puente.Camaras = (function(){
 	};
 	
 	//constructor para las camaras
-	var PuenteCamara = function(){
+	var PuenteCamara = function(canvas, camara){
 		this.camara; //camara Threejs
 		this.camaraEmpty;
 
@@ -132,22 +133,30 @@ Puente.Camaras = (function(){
 		this.velMov = 2; //velocidad de movimiento (por segundo)
 		this.velRot = 1000;
 		
+
+		if (camara != undefined){
+			this.camara = camara;
+		}else{
+			this.camara = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+		}
+		
+		this.canvas = canvas;
+		canvas.addEventListener("click", this.pedirPuntero.bind(this));
+		
 		
 	};
 	
 	//Creacion de la camara CamaraFPS
-	var CamaraFPS = function(camara){
-		PuenteCamara.call(this); //llamada al constructor padre.
-		
-		if (camara != undefined){
-			this.camara = camara;
-		}else{
-			camara = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-		}
+	var CamaraFPS = function(canvas, camara, personaje){
+		PuenteCamara.call(this, canvas); //llamada al constructor padre.
 		
 		this.isCamaraFPS = true;
-	}
+		this.parent = personaje;
+	};
 	CamaraFPS.prototype = Object.create(PuenteCamara.prototype);
+	CamaraFPS.prototype.setParent = function (objeto){
+		this.parent = objeto;
+	};
 	CamaraFPS.prototype = Object.assign(CamaraFPS.prototype, gestorEventos, funcionesMov);
 	CamaraFPS.prototype.constructor = CamaraFPS;
 	
