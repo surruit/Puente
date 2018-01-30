@@ -27,22 +27,50 @@ Puente.Camaras = (function(){
 				this.capturandoPuntero = false;
 			}
 		},
-		procesarRaton: function (e) { //recibe los eventos del raton //esta funcion contiene errores de migrado
-			if (this.capturandoPuntero){
-				this.mouseMov.y += e.movementY;
-				this.mouseMov.x += e.movementX;
-				
-				this.eulerCamara.x += -this.mouseMov.y/this.velRotacion;
-				this.eulerPersonaje.y += -this.mouseMov.x/this.velRotacion;
-				
-				if (this.eulerCamara.x > this.halfPI) this.eulerCamara.x = this.halfPI;
-				if (this.eulerCamara.x < -this.halfPI) this.eulerCamara.x = -this.halfPI;
-
-				this.mouseMov = {x: 0, y: 0}; // esto hace que gaste mucha memoria reservando memoria extra en cada movimiento del raton, crear un gestor con una funcion set0()
-				
-				this.camaraEmpty.quaternion.setFromEuler(this.eulerCamara);
+		procesarRaton: (function () { //recibe los eventos del raton //esta funcion contiene errores de migrado
+			var mouseMov = {x: 0, y: 0};
+			mouseMov.set0 = function (){
+				this.x = 0;
+				this.y = 0;
 			}
-		},
+			mouseMov.downScale = function (){
+				this.x = this.x/1500;
+				this.y = this.y/1500;
+			}
+			
+			return function (e){ //closure
+				mouseMov.y += e.movementY;
+				mouseMov.x += e.movementX;
+				
+				if (this.timeStamp <= performance.now()){
+					this.timeStamp = performance.now() + 8,333; // 1000/120 -> 120 veces por segundo
+				}else{
+					return;
+				}
+
+				if (this.capturandoPuntero){
+					console.log(mouseMov);
+					//this.eulerCamara.x += -mouseMov.y;
+					//this.eulerPersonaje.y += -mouseMov.x;
+
+					//if (this.eulerCamara.x > this.halfPI) this.eulerCamara.x = this.halfPI;
+					//if (this.eulerCamara.x < -this.halfPI) this.eulerCamara.x = -this.halfPI;
+
+					
+
+					//this.camaraEmpty.quaternion.setFromEuler(this.eulerCamara);
+					//this.parent.quaternion.setFromEuler(this.eulerPersonaje);
+					
+					mouseMov.downScale();
+					this.camaraEmpty.rotateX(-mouseMov.y); //los ejes del raton son distintos
+					this.parent.rotateY(-mouseMov.x);
+					mouseMov.set0();
+					
+				}else{
+					mouseMov.set0(); //puede parecer una tonteria, pero es una pequeña optimizacion a esta funcion que se llama 1000 veces por segundo, ahorrarle una comprobacion cuando mas potencia necesita ayuda.
+				}
+			};
+		})(),
 		keyDownEvent: function (e) {
 			let key = this.keyMap[e.key];
 			switch (key){
@@ -74,10 +102,11 @@ Puente.Camaras = (function(){
 	var funcionesMov = {
 		updateMov: function (delta) {
 			if (this.moviendoA.avanzar){
-				this.moverAdelante(-delta*this.velMov);
+				this.parent.translateZ( -delta*this.velMov);
+				//this.moverAdelante(-delta*this.velMov);
 			}
 			if (this.moviendoA.atras){
-				this.moverAdelante(delta*this.velMov);
+				this.parent.translateZ( delta*this.velMov);
 			}
 			if (this.moviendoA.izquierda){
 				console.log("parent:", this.parent);
@@ -106,7 +135,12 @@ Puente.Camaras = (function(){
 	//constructor para las camaras
 	var PuenteCamara = function(canvas, camara){
 		this.camara; //camara Threejs
-		this.camaraEmpty;
+		this.camaraEmpty = new THREE.Object3D();
+		
+		//esto sobra, borrarlo
+		this.eulerPersonaje = new THREE.Euler( 0, 0, 0, 'YXZ' );
+		this.eulerCamara = new THREE.Euler( 0, 0, 0, 'YXZ' );
+		
 
 		this.parent; //objeto al que se fija la camara, todos sus movimientos afectan a la camara y la camara puede afectar al objeto (por ejemplo, rotandolo o moviendolo). En un FPS, parent seria el personaje que controla el jugador.
 
@@ -133,6 +167,8 @@ Puente.Camaras = (function(){
 		this.velMov = 2; //velocidad de movimiento (por segundo)
 		this.velRot = 1000;
 		
+		this.timeStamp = performance.now();
+		
 
 		if (camara != undefined){
 			this.camara = camara;
@@ -156,6 +192,14 @@ Puente.Camaras = (function(){
 	CamaraFPS.prototype = Object.create(PuenteCamara.prototype);
 	CamaraFPS.prototype.setParent = function (objeto){
 		this.parent = objeto;
+		
+		//este codigo es temporal, no deberia estar aqui
+		
+		this.camaraEmpty.add(this.camara);
+		objeto.add(this.camaraEmpty);
+		this.camara.translateZ(5);
+		//this.camaraEmpty.position.copy(camara.position);
+		
 	};
 	CamaraFPS.prototype = Object.assign(CamaraFPS.prototype, gestorEventos, funcionesMov);
 	CamaraFPS.prototype.constructor = CamaraFPS;
