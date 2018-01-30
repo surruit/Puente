@@ -1,8 +1,50 @@
+Puente.Controles = {};
+Puente.Controles.KeyMap = (function (){
+	var KeyMap = function (){
+		this.vKey ={};
+		this.vKeyState = {};
+	};
+	KeyMap.prototype.updateByHKey = function (hKey, pulsado){
+		this.vKeyState[this.vKey[hKey]] = pulsado;
+	};
+	KeyMap.prototype.map = function (vKey, hKey){
+		this.vKey[hKey] = vKey;
+	};
+	KeyMap.prototype.isPulsado = function (hKey){
+		return this.vKeyState[this.vKey[hKey]];
+	};
+	KeyMap.prototype.getState = function(vKey){
+		return this.vKeyState[vKey];
+	};
+	
+	
+	return KeyMap;
+})();
+Puente.Controles.KeyMapTemplates = (function (){
+	var KeyMapTemplates = {};
+	
+	KeyMapTemplates.WASDRaton = function(){
+		var t = new Puente.Controles.KeyMap();
+		t.map("up", "W");
+		t.map("up", "w");
+		t.map("down", "S");
+		t.map("down", "s");
+		t.map("l", "A");
+		t.map("l", "a");
+		t.map("r", "D");
+		t.map("r", "d");
+		
+		return t;
+	};
+	
+	return KeyMapTemplates;
+})();
+
 Puente.Camaras = (function(){
 	var Camaras; //contiene la parte de acceso publico
 	
 
-	//Las siguientes funciones controlan eventos o son llamadas por eventos
+	//Las siguientes funciones controlan eventos
 	var gestorEventos = {
 		pedirPuntero: function(){
 			if (document.pointerLockElement !== this.canvas){ //si el elemento que esta capturando el puntero no es nuestro canvas, solicita capturar el puntero
@@ -10,13 +52,14 @@ Puente.Camaras = (function(){
 			}
 		},
 		startListeners: function(){
-			document.addEventListener("pointerlockchange", funcionesEventos.pointerLockChange.bind(this)); //####estaba editando esto
+			document.addEventListener("pointerlockchange", funcionesEventos.pointerLockChange.bind(this));
 			document.addEventListener("mousemove", funcionesEventos.procesarRaton.bind(this));
 			document.addEventListener("keydown", funcionesEventos.keyDownEvent.bind(this));
 			document.addEventListener("keyup", funcionesEventos.keyUpEvent.bind(this));
 		}
 	};
 	
+	//las siguientes funciones son llamadas por eventos
 	var funcionesEventos = {
 		pointerLockChange:  function (e) {
 			if (document.pointerLockElement === this.canvas){
@@ -41,90 +84,44 @@ Puente.Camaras = (function(){
 			return function (e){ //closure
 				mouseMov.y += e.movementY;
 				mouseMov.x += e.movementX;
-				
 				if (this.timeStamp <= performance.now()){
 					this.timeStamp = performance.now() + 8,333; // 1000/120 -> 120 veces por segundo
 				}else{
 					return;
 				}
-
 				if (this.capturandoPuntero){
-					console.log(mouseMov);
-					//this.eulerCamara.x += -mouseMov.y;
-					//this.eulerPersonaje.y += -mouseMov.x;
-
-					//if (this.eulerCamara.x > this.halfPI) this.eulerCamara.x = this.halfPI;
-					//if (this.eulerCamara.x < -this.halfPI) this.eulerCamara.x = -this.halfPI;
-
-					
-
-					//this.camaraEmpty.quaternion.setFromEuler(this.eulerCamara);
-					//this.parent.quaternion.setFromEuler(this.eulerPersonaje);
-					
 					mouseMov.downScale();
 					this.camaraEmpty.rotateX(-mouseMov.y); //los ejes del raton son distintos
 					this.parent.rotateY(-mouseMov.x);
 					mouseMov.set0();
-					
 				}else{
 					mouseMov.set0(); //puede parecer una tonteria, pero es una pequeña optimizacion a esta funcion que se llama 1000 veces por segundo, ahorrarle una comprobacion cuando mas potencia necesita ayuda.
 				}
 			};
 		})(),
 		keyDownEvent: function (e) {
-			let key = this.keyMap[e.key];
-			switch (key){
-				case "avanzar":
-					this.moviendoA.avanzar = true; break;
-				case "retroceder":
-					this.moviendoA.atras = true; break;
-				case "derecha":
-					this.moviendoA.derecha = true; break;
-				case "izquierda":
-					this.moviendoA.izquierda = true; break;
-			}
+			this.keyMap.updateByHKey(e.key, true);
 		},
 		keyUpEvent: function (e) {
-			let key = this.keyMap[e.key];
-			switch (key){
-				case "avanzar":
-					this.moviendoA.avanzar = false; break;
-				case "retroceder":
-					this.moviendoA.atras = false; break;
-				case "derecha":
-					this.moviendoA.derecha = false; break;
-				case "izquierda":
-					this.moviendoA.izquierda = false; break;
-			}
+			this.keyMap.updateByHKey(e.key, false);
 		}
 	};
 	
 	var funcionesMov = {
 		updateMov: function (delta) {
-			if (this.moviendoA.avanzar){
+			//console.log(this.keyMap);
+			if (this.keyMap.getState("up")){
 				this.parent.translateZ( -delta*this.velMov);
-				//this.moverAdelante(-delta*this.velMov);
 			}
-			if (this.moviendoA.atras){
+			if (this.keyMap.getState("down")){
 				this.parent.translateZ( delta*this.velMov);
 			}
-			if (this.moviendoA.izquierda){
-				console.log("parent:", this.parent);
+			if (this.keyMap.getState("l")){
 				this.parent.translateX( -delta*this.velMov);
 			}
-			if (this.moviendoA.derecha){
+			if (this.keyMap.getState("r")){
 				this.parent.translateX(delta*this.velMov);
 			}
-		},
-		moverAdelante: function (movimiento) {
-			var v = new THREE.Vector3(0, 0, 1); //vector de movimiento hacia delante
-			var q = new THREE.Quaternion();
-			var e = new THREE.Euler( 0, 0, 0, 'YXZ' );
-			e.copy(this.eulerPersonaje);
-			e.x = 0;
-			q.setFromEuler(e);
-			v.applyQuaternion(q);
-			this.parent.position.add(v.multiplyScalar(movimiento));	
 		}
 	};
 	
@@ -146,23 +143,7 @@ Puente.Camaras = (function(){
 
 		this.canvas; //elemento canvas para bloquear el puntero
 		this.capturandoPuntero; //booleano para controlar si se aplican los movimientos del raton o no.
-		this.keyMap = {
-			"W": "avanzar",
-			"w": "avanzar",
-			"S": "retroceder",
-			"s": "retroceder",
-			"A": "izquierda",
-			"a": "izquierda",
-			"D": "derecha",
-			"d": "derecha"
-		};
-
-		this.moviendoA = {
-			avanzar: false,
-			retroceder: false,
-			izquierda: false,
-			derecha: false
-		};
+		this.keyMap = new Puente.Controles.KeyMapTemplates.WASDRaton();
 
 		this.velMov = 2; //velocidad de movimiento (por segundo)
 		this.velRot = 1000;
